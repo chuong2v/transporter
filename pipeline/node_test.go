@@ -302,7 +302,7 @@ var (
 				)
 				return n, a, func() { os.RemoveAll(dataDir) }
 			},
-			0, 1, nil,
+			0, 2, nil,
 		},
 		{
 			"with_skip_transform",
@@ -615,7 +615,7 @@ var (
 				)
 				return n, a, func() {}
 			},
-			1, 0, ErrResumeStopped,
+			2, 0, ErrResumeStopped,
 		},
 		{
 			"with_offset_commit_error",

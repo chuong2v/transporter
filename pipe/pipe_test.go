@@ -119,12 +119,13 @@ func TestListenErr(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, t *testing.T) {
-		for err := range source.Err {
-			if !reflect.DeepEqual(err, errListen) {
-				t.Errorf("wrong error received, expected %s, got %s", errListen, err)
-			}
-			wg.Done()
+		err := <-source.Err
+		// for err := range source.Err {
+		if !reflect.DeepEqual(err, errListen) {
+			t.Errorf("wrong error received, expected %s, got %s", errListen, err)
 		}
+		// }
+		wg.Done()
 	}(&wg, t)
 	source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
 	source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})

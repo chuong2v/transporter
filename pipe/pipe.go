@@ -88,13 +88,16 @@ func (p *Pipe) Listen(fn func(message.Msg, offset.Offset) (message.Msg, error)) 
 		// check for stop
 		select {
 		case c := <-p.chStop:
+			if len(p.In) > 0 {
+				continue
+			}
 			p.Stopped = true
 			c <- true
 			return nil
 		case m := <-p.In:
-			if p.Stopped {
-				break
-			}
+			// if p.Stopped {
+			// 	break
+			// }
 			outmsg, err := fn(m.Msg, m.Off)
 			if err != nil {
 				p.Stopped = true
