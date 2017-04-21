@@ -615,7 +615,7 @@ var (
 				)
 				return n, a, func() {}
 			},
-			2, 0, ErrResumeStopped,
+			1, 0, ErrResumeStopped,
 		},
 		{
 			"with_offset_commit_error",

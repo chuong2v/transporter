@@ -2,6 +2,7 @@ package pipe
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -17,34 +18,6 @@ func TestSend(t *testing.T) {
 	source := NewPipe(nil, "source")
 	sink1 := NewPipe(source, "sink1")
 	go sink1.Listen(func(msg message.Msg, _ offset.Offset) (message.Msg, error) {
-		time.Sleep(200 * time.Millisecond)
-		msgsProcessed++
-		return msg, nil
-	})
-	sink2 := NewPipe(source, "sink2")
-	go sink2.Listen(func(msg message.Msg, _ offset.Offset) (message.Msg, error) {
-		msgsProcessed++
-		return msg, nil
-	})
-	go func() {
-		source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
-		source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
-	}()
-	time.Sleep(300 * time.Millisecond)
-	if msgsProcessed != 3 {
-		t.Errorf("unexpected messages processed count, expected 3, got %d", msgsProcessed)
-	}
-	source.Stop()
-	sink1.Stop()
-	sink2.Stop()
-}
-
-func TestSendTimeout(t *testing.T) {
-	var msgsProcessed int
-	source := NewPipe(nil, "source")
-	sink1 := NewPipe(source, "sink1")
-	go sink1.Listen(func(msg message.Msg, _ offset.Offset) (message.Msg, error) {
-		time.Sleep(200 * time.Millisecond)
 		msgsProcessed++
 		return msg, nil
 	})
@@ -54,14 +27,36 @@ func TestSendTimeout(t *testing.T) {
 		return msg, nil
 	})
 	source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
-	go source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
+	source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
 	time.Sleep(100 * time.Millisecond)
 	source.Stop()
 	sink1.Stop()
 	sink2.Stop()
-	if msgsProcessed != 2 {
-		t.Errorf("unexpected messages processed count, expected 2, got %d", msgsProcessed)
+	if msgsProcessed != 4 {
+		t.Errorf("unexpected messages processed count, expected 4, got %d", msgsProcessed)
 	}
+}
+
+func TestStopMessageInFlight(t *testing.T) {
+	var msgsProcessed int
+	source := NewPipe(nil, "in-flight-source")
+	sink1 := NewPipe(source, "in-flight-sink1")
+	go sink1.Listen(func(msg message.Msg, _ offset.Offset) (message.Msg, error) {
+		time.Sleep(100 * time.Millisecond)
+		msgsProcessed++
+		return msg, nil
+	})
+	for i := 0; i < 11; i++ {
+		source.Send(message.From(ops.Insert, "test", map[string]interface{}{}), offset.Offset{})
+	}
+	time.Sleep(100 * time.Millisecond)
+	fmt.Printf("message count: %d\n", source.MessageCount)
+	source.Stop()
+	sink1.Stop()
+	if msgsProcessed != 11 {
+		t.Errorf("unexpected messages processed count, expected 11, got %d", msgsProcessed)
+	}
+
 }
 
 func TestChainMessage(t *testing.T) {
