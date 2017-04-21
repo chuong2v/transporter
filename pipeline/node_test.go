@@ -302,7 +302,7 @@ var (
 				)
 				return n, a, func() { os.RemoveAll(dataDir) }
 			},
-			0, 2, nil,
+			0, 1, nil,
 		},
 		{
 			"with_skip_transform",
@@ -682,17 +682,14 @@ func TestStop(t *testing.T) {
 			}
 		}
 
-		// Only check for message count when no error is expected
-		if st.startErr == nil {
-			if st.msgCount != s.MsgCount {
-				t.Errorf("[%s] wrong number of messages received, expected %d, got %d", st.name, st.msgCount, s.MsgCount)
-			}
-			if len(source.children[0].transforms) > 0 {
-				switch mock := source.children[0].transforms[0].Fn.(type) {
-				case *function.Mock:
-					if mock.ApplyCount != st.applyCount {
-						t.Errorf("[%s] wrong number of transforms applied, expected %d, got %d", st.name, st.applyCount, mock.ApplyCount)
-					}
+		if st.msgCount != s.MsgCount {
+			t.Errorf("[%s] wrong number of messages received, expected %d, got %d", st.name, st.msgCount, s.MsgCount)
+		}
+		if len(source.children[0].transforms) > 0 {
+			switch mock := source.children[0].transforms[0].Fn.(type) {
+			case *function.Mock:
+				if mock.ApplyCount != st.applyCount {
+					t.Errorf("[%s] wrong number of transforms applied, expected %d, got %d", st.name, st.applyCount, mock.ApplyCount)
 				}
 			}
 		}

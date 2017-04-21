@@ -102,7 +102,8 @@ func (p *Pipe) Listen(fn func(message.Msg, offset.Offset) (message.Msg, error)) 
 			if err != nil {
 				p.Stopped = true
 				p.Err <- err
-				break
+				p.wg.Done()
+				return err
 			}
 			if outmsg == nil {
 				break
