@@ -672,14 +672,18 @@ func TestStop(t *testing.T) {
 				t.Errorf("[%s] child node was not closed but should have been", child.Name)
 			}
 		}
-		if st.msgCount != s.MsgCount {
-			t.Errorf("[%s] wrong number of messages received, expected %d, got %d", st.name, st.msgCount, s.MsgCount)
-		}
-		if len(source.children[0].transforms) > 0 {
-			switch mock := source.children[0].transforms[0].Fn.(type) {
-			case *function.Mock:
-				if mock.ApplyCount != st.applyCount {
-					t.Errorf("[%s] wrong number of transforms applied, expected %d, got %d", st.name, st.applyCount, mock.ApplyCount)
+
+		// Only check for message count when no error is expected
+		if st.startErr == nil {
+			if st.msgCount != s.MsgCount {
+				t.Errorf("[%s] wrong number of messages received, expected %d, got %d", st.name, st.msgCount, s.MsgCount)
+			}
+			if len(source.children[0].transforms) > 0 {
+				switch mock := source.children[0].transforms[0].Fn.(type) {
+				case *function.Mock:
+					if mock.ApplyCount != st.applyCount {
+						t.Errorf("[%s] wrong number of transforms applied, expected %d, got %d", st.name, st.applyCount, mock.ApplyCount)
+					}
 				}
 			}
 		}
