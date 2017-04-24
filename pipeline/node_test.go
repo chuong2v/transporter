@@ -661,6 +661,7 @@ func TestStop(t *testing.T) {
 					return
 				}
 				errorChecked = true
+				time.Sleep(1 * time.Second)
 				source.Stop()
 				close(stopC)
 			}
@@ -671,6 +672,7 @@ func TestStop(t *testing.T) {
 		mu.Lock()
 		if !errorChecked {
 			errorChecked = true
+			time.Sleep(1 * time.Second)
 			source.Stop()
 			close(stopC)
 		}
